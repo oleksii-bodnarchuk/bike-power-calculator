@@ -1,4 +1,21 @@
+import json
 import pandas as pd
+from pathlib import Path
+
+try:
+    import matplotlib.pyplot as plt
+    HAS_MPL = True
+except Exception:  # matplotlib might be missing
+    HAS_MPL = False
+
+CONFIG_FILE = Path(__file__).with_name('config.json')
+if CONFIG_FILE.exists():
+    with CONFIG_FILE.open(encoding='utf-8') as f:
+        CONFIG = json.load(f)
+else:
+    CONFIG = {}
+
+PLOT_CFG = CONFIG.get('plot', {})
 
 # Передні зірки для порівняння
 front_teeth_options = [11, 12, 13, 14]
@@ -42,5 +59,24 @@ else:
         "Передня зірка", "Задня зірка", "Передатне число",
         "Макс. швидкість (км/год)", "Прискорення (%)"
     ])
+
+
+def plot_dataframe(df, cfg):
+    if not HAS_MPL or not cfg:
+        return
+    kind = cfg.get("kind", "bar")
+    x = cfg.get("x")
+    y = cfg.get("y")
+    title = cfg.get("title")
+    save = cfg.get("save")
+    ax = df.plot(x=x, y=y, kind=kind)
+    if title:
+        ax.set_title(title)
+    if save:
+        plt.savefig(save)
+    else:
+        plt.show()
+
+plot_dataframe(df, PLOT_CFG)
 
 import ace_tools_open as tools; tools.display_dataframe_to_user(name="Комбінації зірок для 60 км/год", dataframe=df)
